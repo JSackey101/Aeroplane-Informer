@@ -6,25 +6,45 @@ from rich.console import Console
 console = Console()
 
 
-def loadWeatherForLocation(location):
+def loadWeatherForLocation(lat, lng):
     # Given a location, load the current weather for that location
     return {}
 
 
+def renderFlights(flights):
+    # Render a list of flights to the console using the Rich Library
+    #
+    # Consider using Panels, Grids, Tables or any of the more advanced
+    # features of the library
+    console.print(flights)
+
+
+def getFlightsFromIata(iata):
+    # Given an IATA get the flights that are departing from that airport from Airlabs
+    return {}
+
+
 def loadAirportJSON():
-    # Load the data from the airports.json file
+    # Load airport data from airports.json
     return []
 
 
-def findAirportFromIATA(iata):
-    # Find the airport object from the JSON based on it
-    # IATA number and return it
+def findAirportsFromName(name, airportData):
+    # Find an airport from the airportData given a name
+    # Could return one or more airport objects
+
+    return []
+
+
+def findAirportFromIata(iata, airportData):
+    # Find an airport from the airportData given a name
+    # Should return exactly one airport object
+
     return {}
 
 
 def getSearch():
-    # Use Prompt to ask the user for their airport search
-    return ""
+    return Prompt.ask("Search for an an airport")
 
 
 def main():
@@ -34,9 +54,10 @@ def main():
     console.print("✈️ ✈️ ✈️ ✈️ ✈️ ✈️ ✈️ ✈️")
     console.print(" ")
 
+    airportData = loadAirportJSON()
+
     while 1:
-        search = getSearch()
-        # Then do something with the search
+        airportSearch = getSearch()
 
 
 main()
