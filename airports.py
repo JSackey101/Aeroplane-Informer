@@ -70,4 +70,5 @@ def main() -> None:
         airport_search = get_search()
 
 
-main()
+if __name__ == "__main__":
+    main()
