@@ -55,9 +55,7 @@ def get_search() -> str:
     return Prompt.ask("Search for an an airport")
 
 
-def main() -> None:
-    """Repeatedly prompts the user for airport names and displays the result."""
-
+if __name__ == "__main__":
     console.print(" ")
     console.print("✈️ ✈️ ✈️ ✈️ ✈️ ✈️ ✈️ ✈️")
     console.print("Welcome to the Airports Informer Tool")
@@ -65,10 +63,4 @@ def main() -> None:
     console.print(" ")
 
     airport_data = load_airport_JSON()
-
-    while 1:
-        airport_search = get_search()
-
-
-if __name__ == "__main__":
-    main()
+    airport_search = get_search()
