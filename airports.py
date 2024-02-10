@@ -1,6 +1,7 @@
 import requests
 from rich.prompt import Prompt
 from rich.console import Console
+import argparse
 
 # Instead of using print(), you should use the Console from Rich instead.
 console = Console()
@@ -9,7 +10,7 @@ console = Console()
 def load_weather_for_location(lat: str, lng: str) -> dict:
     """Given a location, load the current weather for that location"""
 
-    return {}
+    pass
 
 
 def render_flights(flights: list) -> None:
@@ -24,13 +25,13 @@ def render_flights(flights: list) -> None:
 def get_flights_from_iata(iata: str) -> list:
     """Given an IATA get the flights that are departing from that airport from Airlabs"""
 
-    return []
+    pass
 
 
 def load_airport_JSON() -> list:
     """Load airport data from airports.json"""
 
-    return []
+    pass
 
 
 def find_airports_from_name(name: str, airport_data: list) -> list:
@@ -39,7 +40,7 @@ def find_airports_from_name(name: str, airport_data: list) -> list:
     Could return one or more airport objects
     """
 
-    return []
+    pass
 
 
 def find_airport_from_iata(iata: str, airport_data: list) -> dict:
@@ -48,19 +49,14 @@ def find_airport_from_iata(iata: str, airport_data: list) -> dict:
     Should return exactly one airport object
     """
 
-    return {}
+    pass
 
 
-def get_search() -> str:
-    return Prompt.ask("Search for an an airport")
+def get_airport() -> str:
+    """Get the airport from the CLI"""
+    pass
 
 
 if __name__ == "__main__":
-    console.print(" ")
-    console.print("✈️ ✈️ ✈️ ✈️ ✈️ ✈️ ✈️ ✈️")
-    console.print("Welcome to the Airports Informer Tool")
-    console.print("✈️ ✈️ ✈️ ✈️ ✈️ ✈️ ✈️ ✈️")
-    console.print(" ")
-
     airport_data = load_airport_JSON()
-    airport_search = get_search()
+    airport_search = get_airport()
