@@ -28,8 +28,8 @@ def get_flights_from_iata(iata: str) -> list:
     pass
 
 
-def load_airport_JSON() -> list:
-    """Load airport data from airports.json"""
+def load_airport_JSON() -> list[dict]:
+    """Returns airport information loaded from a file."""
 
     pass
 
