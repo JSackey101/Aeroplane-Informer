@@ -51,12 +51,7 @@ def find_airport_from_iata(iata: str, airport_data: list) -> dict:
 
     pass
 
-
-def get_airport() -> str:
-    """Get the airport from the CLI"""
-    pass
-
-
 if __name__ == "__main__":
     airport_data = load_airport_JSON()
-    airport_search = get_airport()
+    airport_name = input("Enter an airport: ")
+    print(f"You are searching for {airport_name}.")
