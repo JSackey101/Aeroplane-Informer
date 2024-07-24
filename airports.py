@@ -36,7 +36,7 @@ def load_airport_JSON() -> list[dict]:
 
 def find_airports_from_name(name: str, airport_data: list) -> list:
     """
-    Find an airport from the airportData given a name
+    Find an airport from the airport_data given a name
     Could return one or more airport objects
     """
 
