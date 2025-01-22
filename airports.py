@@ -42,7 +42,7 @@ def find_airports_from_name(name: str, airport_data: list) -> list:
     matches = [airport for airport in airport_data if name in str(airport['name'])]
     return matches
 
-def choose_desired_airport(airport_matches):
+def choose_desired_airport(airport_matches: str) -> dict:
     """ Takes a list of airports and returns the correct match. """
     if len(airport_matches) == 0:
         raise ValueError("No airports found.")
