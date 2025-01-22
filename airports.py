@@ -1,6 +1,7 @@
 import requests
 from rich.prompt import Prompt
 from rich.console import Console
+from rich.table import Table
 import argparse
 import json
 
@@ -18,8 +19,19 @@ def render_flights(flights: list) -> None:
 
     Consider using Panels, Grids, Tables or any of the more advanced
     features of the library"""
+    table = Table(title="Flight Data")
 
-    console.print(flights)
+    table.add_column("Airline")
+    table.add_column("Flight Number")
+    table.add_column("Terminal")
+    table.add_column("Gate")
+    table.add_column("Departure Time (UTC)")
+    table.add_column("Arrival Time (UTC)")
+
+    for flight in flights:
+        table.add_row(flight['dep_iata'], flight['flight_number'], flight['dep_gate'],
+                       flight['dep_terminal'], flight['dep_time_utc'], flight['arr_time_utc'])
+    console.print(table)
 
 
 def get_flights_from_iata(iata: str) -> list:
@@ -36,8 +48,6 @@ def load_airport_json() -> list[dict]:
         airport_json = json.load(airports)
     return airport_json
 
-def print_flight_to_console(fight_data: list[dict]) -> None:
-    pass
 
 def find_airports_from_name(name: str, airport_data: list) -> list:
     """
@@ -68,8 +78,8 @@ def setup_command_line_arguments(option: str) -> "Namespace":
 if __name__ == "__main__":
     airport_data = load_airport_json()
     airport_name = setup_command_line_arguments("--airport").airport
-    print(f"You are searching for {airport_name}.")
+    console.print(f"You are searching for {airport_name}.")
 
     airport = choose_desired_airport(find_airports_from_name(airport_name, airport_data))
     flight_data = get_flights_from_iata(airport['iata'])
-    
+    render_flights(flight_data['response'])
