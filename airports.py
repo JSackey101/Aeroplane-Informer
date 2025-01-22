@@ -24,7 +24,10 @@ def render_flights(flights: list) -> None:
 
 def get_flights_from_iata(iata: str) -> list:
     """Given an IATA get the flights that are departing from that airport from Airlabs"""
-    ...
+    response = requests.get(f"https://airlabs.co/api/v9/schedules?dep_iata={iata}&api_key=***REMOVED***"
+                            , timeout=10)
+    response.raise_for_status()
+    return response.json()
 
 
 def load_airport_json() -> list[dict]:
@@ -33,6 +36,8 @@ def load_airport_json() -> list[dict]:
         airport_json = json.load(airports)
     return airport_json
 
+def print_flight_to_console(fight_data: list[dict]) -> None:
+    pass
 
 def find_airports_from_name(name: str, airport_data: list) -> list:
     """
@@ -66,4 +71,5 @@ if __name__ == "__main__":
     print(f"You are searching for {airport_name}.")
 
     airport = choose_desired_airport(find_airports_from_name(airport_name, airport_data))
+    flight_data = get_flights_from_iata(airport['iata'])
     
