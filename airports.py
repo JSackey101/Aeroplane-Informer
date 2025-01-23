@@ -7,8 +7,9 @@ import json
 from datetime import datetime, timedelta
 
 # Instead of using print(), you should use the Console from Rich instead.
-console = Console()
+console = Console(record=True)
 FLIGHT_DATE_FORMAT = '%Y-%m-%d %H:%M'
+
 
 
 def load_weather_for_location(lat: str, lng: str, 
@@ -103,17 +104,31 @@ def choose_desired_airport(airport_matches: str) -> dict:
         return list(airport for airport in airport_matches if airport['name'] == airport_choice)[0]
     return airport_matches[0]
 
-def setup_command_line_arguments(option: str) -> "Namespace":
+def setup_command_line_arguments(options: list[str], choices: list) -> "Namespace":
     """ Takes command line input and returns it as a Namespace object. """
     parser = argparse.ArgumentParser()
-    parser.add_argument(option)
+    for index, option in enumerate(options):
+        parser.add_argument(option, choices=choices[index])
     args = parser.parse_args()
     return args
 
+def export_html(name: str) -> None:
+    """ Exports the Console as a HTML file. """
+    console.save_html(f"Search-{name}-{datetime.now().ctime()}.html")
+
+def export_json(name: str) -> None:
+    """ Exports the Console as a JSON file. """
+    text_data = console.export_html()
+    json_data = json.dumps(text_data)
+    with open(f"Search-{name}-{datetime.now().ctime()}.json", "w", encoding='UTF-8') as json_file:
+        json_file.write(json_data)
+        
 
 if __name__ == "__main__":
     airport_data = load_airport_json()
-    airport_name = setup_command_line_arguments("--airport").airport
+    command_line_input = setup_command_line_arguments(["--airport", "--export"],
+                                                      [None, ['JSON', 'HTML']])
+    airport_name = command_line_input.airport
     console.print(f"You are searching for {airport_name}.")
 
     airport = choose_desired_airport(find_airports_from_name(airport_name, airport_data))
@@ -122,3 +137,8 @@ if __name__ == "__main__":
     add_weather_to_flights(flight_data['response'])
 
     render_flights(flight_data['response'])
+
+    if command_line_input.export == 'HTML':
+        export_html(airport['name'])
+    if command_line_input.export == 'JSON':
+        export_json(airport['name'])
