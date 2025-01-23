@@ -4,15 +4,40 @@ from rich.console import Console
 from rich.table import Table
 import argparse
 import json
+from datetime import datetime, timedelta
 
 # Instead of using print(), you should use the Console from Rich instead.
 console = Console()
+FLIGHT_DATE_FORMAT = '%Y-%m-%d %H:%M'
 
 
-def load_weather_for_location(lat: str, lng: str) -> dict:
+def load_weather_for_location(lat: str, lng: str, 
+                              timestamp:int =datetime.now().timestamp()) -> dict:
     """Given a location, load the current weather for that location"""
-    ...
+    print(f"http://api.weatherapi.com/v1/forecast.json?key=***REMOVED***&q={lat},{lng}&unixdt={timestamp}&aqi=yes")
+    response = requests.get(
+        f"http://api.weatherapi.com/v1/forecast.json?key=***REMOVED***&q={lat},{lng}&unixdt={timestamp}&aqi=yes",
+        timeout=10)
+    response.raise_for_status()
+    return response.json()
 
+def add_weather_to_flights(flights: list, airport_info: dict) -> None:
+    """ Add the weather data to the flights. """
+    for i, flight in enumerate(flights):
+        arrival_date_obj = datetime.strptime(flight['arr_time_utc'], FLIGHT_DATE_FORMAT)
+        arrival_date_obj = round_to_hour(arrival_date_obj)
+        print(arrival_date_obj.timestamp())
+        weather = load_weather_for_location(airport_info['lat'],
+                                            airport_info['lon'], arrival_date_obj.timestamp())
+        print(arrival_date_obj.timestamp())
+        flights[i] = flight | [
+            hour for hour in weather['forecast']['forecastday'][0]['hour'] if hour['time_epoch'] == arrival_date_obj.timestamp()][0]
+
+def round_to_hour(datetime_obj: datetime) -> "datetime":
+    """ Returns a datetime object rounded to the nearest hour (?)"""
+    datetime_obj = datetime_obj.replace(minute=0, second=0, microsecond=0)
+    round_time = timedelta(hours = datetime_obj.minute // 30)
+    return datetime_obj + round_time
 
 def render_flights(flights: list) -> None:
     """Render a list of flights to the console using the Rich Library
@@ -21,16 +46,20 @@ def render_flights(flights: list) -> None:
     features of the library"""
     table = Table(title="Flight Data")
 
-    table.add_column("Airline")
     table.add_column("Flight Number")
     table.add_column("Terminal")
     table.add_column("Gate")
-    table.add_column("Departure Time (UTC)")
-    table.add_column("Arrival Time (UTC)")
+    table.add_column(f"Departure\nTime (UTC)")
+    table.add_column(f"Arrival\nTime (UTC)")
+    table.add_column(f"Temperature\n(Degrees)")
+    table.add_column("Weather Condition")
 
     for flight in flights:
-        table.add_row(flight['dep_iata'], flight['flight_number'], flight['dep_gate'],
-                       flight['dep_terminal'], flight['dep_time_utc'], flight['arr_time_utc'])
+        table.add_row(flight['flight_number'], 
+                      flight['dep_gate'] if flight['dep_gate'] is not None else "N/A",
+                      flight['dep_terminal'] if flight['dep_terminal'] is not None else "N/A",
+                      flight['dep_time_utc'], flight['arr_time_utc'], str(flight['temp_c']),
+                      flight['condition']['text'])
     console.print(table)
 
 
@@ -64,7 +93,7 @@ def choose_desired_airport(airport_matches: str) -> dict:
     if len(airport_matches) > 1:
         airport_choice = Prompt.ask("Multiple airports found, please choose one: ", choices=[
                                     airport['name'] for airport in airport_matches])
-        return (airport for airport in airport_matches if airport['name'] == airport_choice)
+        return list(airport for airport in airport_matches if airport['name'] == airport_choice)[0]
     return airport_matches[0]
 
 def setup_command_line_arguments(option: str) -> "Namespace":
@@ -82,4 +111,7 @@ if __name__ == "__main__":
 
     airport = choose_desired_airport(find_airports_from_name(airport_name, airport_data))
     flight_data = get_flights_from_iata(airport['iata'])
+
+    add_weather_to_flights(flight_data['response'], airport)
+
     render_flights(flight_data['response'])
