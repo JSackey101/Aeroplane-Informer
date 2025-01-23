@@ -14,22 +14,20 @@ FLIGHT_DATE_FORMAT = '%Y-%m-%d %H:%M'
 def load_weather_for_location(lat: str, lng: str, 
                               timestamp:int =datetime.now().timestamp()) -> dict:
     """Given a location, load the current weather for that location"""
-    print(f"http://api.weatherapi.com/v1/forecast.json?key=***REMOVED***&q={lat},{lng}&unixdt={timestamp}&aqi=yes")
     response = requests.get(
         f"http://api.weatherapi.com/v1/forecast.json?key=***REMOVED***&q={lat},{lng}&unixdt={timestamp}&aqi=yes",
         timeout=10)
     response.raise_for_status()
     return response.json()
 
-def add_weather_to_flights(flights: list, airport_info: dict) -> None:
+def add_weather_to_flights(flights: list) -> None:
     """ Add the weather data to the flights. """
     for i, flight in enumerate(flights):
         arrival_date_obj = datetime.strptime(flight['arr_time_utc'], FLIGHT_DATE_FORMAT)
         arrival_date_obj = round_to_hour(arrival_date_obj)
-        print(arrival_date_obj.timestamp())
+        airport_info = find_airport_from_iata(flight['arr_iata'])
         weather = load_weather_for_location(airport_info['lat'],
-                                            airport_info['lon'], arrival_date_obj.timestamp())
-        print(arrival_date_obj.timestamp())
+                                            airport_info['lng'], arrival_date_obj.timestamp())
         flights[i] = flight | [
             hour for hour in weather['forecast']['forecastday'][0]['hour'] if hour['time_epoch'] == arrival_date_obj.timestamp()][0]
 
@@ -69,6 +67,15 @@ def get_flights_from_iata(iata: str) -> list:
                             , timeout=10)
     response.raise_for_status()
     return response.json()
+
+
+def find_airport_from_iata(iata: str) -> list:
+    """Given an IATA get the Airport that matches the IATA from Airlabs. """
+    response = requests.get(
+        f"https://airlabs.co/api/v9/airports?iata_code={iata}&api_key=***REMOVED***",
+        timeout=10)
+    response.raise_for_status()
+    return response.json()['response'][0]
 
 
 def load_airport_json() -> list[dict]:
@@ -112,6 +119,6 @@ if __name__ == "__main__":
     airport = choose_desired_airport(find_airports_from_name(airport_name, airport_data))
     flight_data = get_flights_from_iata(airport['iata'])
 
-    add_weather_to_flights(flight_data['response'], airport)
+    add_weather_to_flights(flight_data['response'])
 
     render_flights(flight_data['response'])
