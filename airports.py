@@ -140,7 +140,7 @@ def render_flights(flights: list) -> None:
                       flight['dep_terminal'] if flight['dep_terminal'] is not None else "N/A",
                       flight['dep_time_utc'], flight['arr_time_utc'],
                       f"{flight['dest_name']}, {flight['dest_country']}",
-                      flight['duration'],
+                      str(flight['duration']),
                       str(flight['temp_c']),
                       flight['condition'])
     console.print(table)
