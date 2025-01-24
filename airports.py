@@ -58,6 +58,11 @@ class ErrorRaising():
         """ Validates that the input is a string. """
         if not isinstance(string, str):
             raise TypeError("The input must be a string.")
+        
+    @staticmethod
+    def raise_error_airlabs_api():
+        """ Raises an error when the Airlabs API key reaches limit. """
+        raise requests.HTTPError("Airlabs API key has reached the usage limit.")
 
 def load_weather_for_location(lat: float, lng: float, 
                               timestamp:float =datetime.now().timestamp()) -> dict:
@@ -149,6 +154,10 @@ def get_flights_from_iata(iata: str) -> list:
     response = requests.get(f"https://airlabs.co/api/v9/schedules?dep_iata={iata}&api_key={AIRLABS_API_KEY}"
                             , timeout=10)
     response.raise_for_status()
+    try:
+        response.json()['response']
+    except KeyError:
+        ErrorRaising.raise_error_airlabs_api()
     return response.json()
 
 
@@ -159,7 +168,10 @@ def find_airport_from_iata(iata: str) -> list:
         f"https://airlabs.co/api/v9/airports?iata_code={iata}&api_key={AIRLABS_API_KEY}",
         timeout=10)
     response.raise_for_status()
-    return response.json()['response'][0]
+    try:
+        return response.json()['response'][0]
+    except KeyError:
+        ErrorRaising.raise_error_airlabs_api()
 
 
 def load_airport_json() -> list[dict]:
