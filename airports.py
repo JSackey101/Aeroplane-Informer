@@ -132,7 +132,7 @@ def render_flights(flights: list) -> None:
     table.add_column("Departure\nTime (UTC)")
     table.add_column("Arrival\nTime (UTC)")
     table.add_column("Destination")
-    table.add_column("Duration")
+    table.add_column("Duration\n(minutes)")
     table.add_column("Temperature\n(Degrees)")
     table.add_column("Weather Condition")
 
