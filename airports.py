@@ -1,10 +1,13 @@
+""" A program to find and display flight data. """
+
+import argparse
+import json
+from datetime import datetime, timedelta
 import requests
 from rich.prompt import Prompt
 from rich.console import Console
 from rich.table import Table
-import argparse
-import json
-from datetime import datetime, timedelta
+
 
 # Instead of using print(), you should use the Console from Rich instead.
 console = Console(record=True)
@@ -15,20 +18,51 @@ AIRLABS_API_KEY = "***REMOVED***"
 class ErrorRaising():
     """ A class for raising errors. """
     @staticmethod
-    def validate_load_weather_for_location(lat: float | int, lng: float | int, timestamp: float | int):
+    def validate_load_weather_for_location(lat: float | int, lng: float | int,
+                                            timestamp: float | int) -> None:
         """ Validates input Latitude, Longitude and Unix Timestamp data. """
-        if not (isinstance(lat, float) or isinstance(lat, int)):
+        if not isinstance(lat, (float, int)):
             raise TypeError("Latitude must be a number.")
         if lat > 90 or lat < -90:
             raise ValueError("Invalid Latitude value.")
-        if not (isinstance(lng, float) or isinstance(lng, int)):
+        if not isinstance(lng, (float, int)):
             raise TypeError("Longitude must be a number.")
-        if lat > 180 or lat < -180:
+        if lng > 180 or lng < -180:
             raise ValueError("Invalid Longitude value.")
-        if not isinstance(timestamp, float) or isinstance(timestamp, int):
+        if not isinstance(timestamp, (float, int)):
             raise TypeError("Timestamp must be a number.")
         if timestamp < 1262304000:
             raise ValueError("Invalid Timestamp. Must be on/after 1st Jan 2010. ")
+    
+    @staticmethod
+    def validate_flights_in_list(flights: list):
+        """ Validates that there are flights in the list. """
+        if len(flights) == 0:
+            raise ValueError("There must be at least 1 flight. ")
+        
+    @staticmethod
+    def validate_list_input(flights: list):
+        """ Validates that the input is a list. """
+        if not isinstance(flights, list):
+            raise TypeError("The flights must be a list.")
+        
+    @staticmethod
+    def validate_dicts_in_list(flights: list):
+        """ Validates that the inputs within the list are dicts. """
+        if not all(isinstance(flight, dict) for flight in flights):
+            raise TypeError("Each flight must be a dict.")
+
+    @staticmethod
+    def validate_input_is_datetime(datetime_obj: datetime):
+        """ Validates that the input is a datetime object"""
+        if not isinstance(datetime_obj, datetime):
+            raise TypeError("The date/time must be given as a datetime object.")
+    
+    @staticmethod
+    def validate_input_is_str(string: str):
+        """ Validates that the input is a string. """
+        if not isinstance(string, str):
+            raise TypeError("The input must be a string.")
 
 def load_weather_for_location(lat: float, lng: float, 
                               timestamp:float =datetime.now().timestamp()) -> dict:
@@ -42,8 +76,12 @@ def load_weather_for_location(lat: float, lng: float,
 
 def flight_data_cleaner(flights: list) -> list:
     """ Takes a list of flights and returns only the needed flight data. """
+    ErrorRaising.validate_flights_in_list(flights)
+    ErrorRaising.validate_list_input(flights)
+    ErrorRaising.validate_dicts_in_list(flights)
     clean_flights = []
     for flight in flights:
+        print(flight)
         clean_flight = {
             'flight_number': flight['flight_number'],
             'dep_terminal': flight['dep_terminal'],
@@ -61,6 +99,9 @@ def flight_data_cleaner(flights: list) -> list:
 
 def add_weather_to_flights(flights: list) -> None:
     """ Add the weather data to the flights. """
+    ErrorRaising.validate_flights_in_list(flights)
+    ErrorRaising.validate_list_input(flights)
+    ErrorRaising.validate_dicts_in_list(flights)
     for i, flight in enumerate(flights):
         arrival_date_obj = datetime.strptime(flight['arr_time_utc'], FLIGHT_DATE_FORMAT)
         arrival_date_obj = round_to_hour(arrival_date_obj)
@@ -72,9 +113,10 @@ def add_weather_to_flights(flights: list) -> None:
             hour['time_epoch'] == arrival_date_obj.timestamp()][0] | weather['location']
 
 def round_to_hour(datetime_obj: datetime) -> "datetime":
-    """ Returns a datetime object rounded to the nearest hour (?)"""
+    """ Returns a datetime object rounded to the nearest hour. """
+    ErrorRaising.validate_input_is_datetime(datetime_obj)
+    round_time = timedelta(hours=datetime_obj.minute // 30)
     datetime_obj = datetime_obj.replace(minute=0, second=0, microsecond=0)
-    round_time = timedelta(hours = datetime_obj.minute // 30)
     return datetime_obj + round_time
 
 def render_flights(flights: list) -> None:
@@ -103,6 +145,7 @@ def render_flights(flights: list) -> None:
 
 def get_flights_from_iata(iata: str) -> list:
     """Given an IATA get the flights that are departing from that airport from Airlabs"""
+    ErrorRaising.validate_input_is_str(iata)
     response = requests.get(f"https://airlabs.co/api/v9/schedules?dep_iata={iata}&api_key={AIRLABS_API_KEY}"
                             , timeout=10)
     response.raise_for_status()
@@ -111,6 +154,9 @@ def get_flights_from_iata(iata: str) -> list:
 
 def find_airport_from_iata(iata: str) -> list:
     """Given an IATA get the Airport that matches the IATA from Airlabs. """
+    ErrorRaising.validate_input_is_str(iata)
+    print(
+        f"https://airlabs.co/api/v9/airports?iata_code={iata}&api_key={AIRLABS_API_KEY}")
     response = requests.get(
         f"https://airlabs.co/api/v9/airports?iata_code={iata}&api_key={AIRLABS_API_KEY}",
         timeout=10)
@@ -130,10 +176,13 @@ def find_airports_from_name(name: str, airport_data: list) -> list:
     Find an airport from the airport_data given a name
     Could return one or more airport objects
     """
+    ErrorRaising.validate_input_is_str(name)
+    ErrorRaising.validate_list_input(airport_data)
+    ErrorRaising.validate_dicts_in_list(airport_data)
     matches = [airport for airport in airport_data if name in str(airport['name'])]
     return matches
 
-def choose_desired_airport(airport_matches: str) -> dict:
+def choose_desired_airport(airport_matches: list) -> dict:
     """ Takes a list of airports and returns the correct match. """
     if len(airport_matches) == 0:
         raise ValueError("No airports found.")
