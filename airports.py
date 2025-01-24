@@ -9,7 +9,6 @@ from rich.console import Console
 from rich.table import Table
 
 
-# Instead of using print(), you should use the Console from Rich instead.
 console = Console(record=True)
 FLIGHT_DATE_FORMAT = '%Y-%m-%d %H:%M'
 WEATHER_API_KEY = "***REMOVED***"
@@ -81,7 +80,6 @@ def flight_data_cleaner(flights: list) -> list:
     ErrorRaising.validate_dicts_in_list(flights)
     clean_flights = []
     for flight in flights:
-        print(flight)
         clean_flight = {
             'flight_number': flight['flight_number'],
             'dep_terminal': flight['dep_terminal'],
@@ -131,6 +129,8 @@ def render_flights(flights: list) -> None:
     table.add_column("Gate")
     table.add_column(f"Departure\nTime (UTC)")
     table.add_column(f"Arrival\nTime (UTC)")
+    table.add_column("Destination")
+    table.add_column("Duration")
     table.add_column(f"Temperature\n(Degrees)")
     table.add_column("Weather Condition")
 
@@ -138,7 +138,10 @@ def render_flights(flights: list) -> None:
         table.add_row(flight['flight_number'],
                       flight['dep_gate'] if flight['dep_gate'] is not None else "N/A",
                       flight['dep_terminal'] if flight['dep_terminal'] is not None else "N/A",
-                      flight['dep_time_utc'], flight['arr_time_utc'], str(flight['temp_c']),
+                      flight['dep_time_utc'], flight['arr_time_utc'],
+                      f"{flight['dest_name']}, {flight['dest_country']}",
+                      flight['duration'],
+                      str(flight['temp_c']),
                       flight['condition'])
     console.print(table)
 
@@ -155,8 +158,6 @@ def get_flights_from_iata(iata: str) -> list:
 def find_airport_from_iata(iata: str) -> list:
     """Given an IATA get the Airport that matches the IATA from Airlabs. """
     ErrorRaising.validate_input_is_str(iata)
-    print(
-        f"https://airlabs.co/api/v9/airports?iata_code={iata}&api_key={AIRLABS_API_KEY}")
     response = requests.get(
         f"https://airlabs.co/api/v9/airports?iata_code={iata}&api_key={AIRLABS_API_KEY}",
         timeout=10)
