@@ -32,19 +32,16 @@ class ErrorRaising():
             raise TypeError("Timestamp must be a number.")
         if timestamp < 1262304000:
             raise ValueError("Invalid Timestamp. Must be on/after 1st Jan 2010. ")
-    
     @staticmethod
     def validate_flights_in_list(flights: list):
         """ Validates that there are flights in the list. """
         if len(flights) == 0:
             raise ValueError("There must be at least 1 flight. ")
-        
     @staticmethod
     def validate_list_input(flights: list):
         """ Validates that the input is a list. """
         if not isinstance(flights, list):
             raise TypeError("The flights must be a list.")
-        
     @staticmethod
     def validate_dicts_in_list(flights: list):
         """ Validates that the inputs within the list are dicts. """
@@ -56,7 +53,6 @@ class ErrorRaising():
         """ Validates that the input is a datetime object"""
         if not isinstance(datetime_obj, datetime):
             raise TypeError("The date/time must be given as a datetime object.")
-    
     @staticmethod
     def validate_input_is_str(string: str):
         """ Validates that the input is a string. """
@@ -105,7 +101,8 @@ def add_weather_to_flights(flights: list) -> None:
         arrival_date_obj = round_to_hour(arrival_date_obj)
         airport_info = find_airport_from_iata(flight['arr_iata'])
         weather = load_weather_for_location(float(airport_info['lat']),
-                                            float(airport_info['lng']), arrival_date_obj.timestamp())
+                                            float(airport_info['lng']), 
+                                            arrival_date_obj.timestamp())
         flights[i] = flight | [
             hour for hour in weather['forecast']['forecastday'][0]['hour'] if 
             hour['time_epoch'] == arrival_date_obj.timestamp()][0] | weather['location']
@@ -127,11 +124,11 @@ def render_flights(flights: list) -> None:
     table.add_column("Flight Number")
     table.add_column("Terminal")
     table.add_column("Gate")
-    table.add_column(f"Departure\nTime (UTC)")
-    table.add_column(f"Arrival\nTime (UTC)")
+    table.add_column("Departure\nTime (UTC)")
+    table.add_column("Arrival\nTime (UTC)")
     table.add_column("Destination")
     table.add_column("Duration")
-    table.add_column(f"Temperature\n(Degrees)")
+    table.add_column("Temperature\n(Degrees)")
     table.add_column("Weather Condition")
 
     for flight in flights:
@@ -172,15 +169,15 @@ def load_airport_json() -> list[dict]:
     return airport_json
 
 
-def find_airports_from_name(name: str, airport_data: list) -> list:
+def find_airports_from_name(name: str, airport_data_input: list) -> list:
     """
     Find an airport from the airport_data given a name
     Could return one or more airport objects
     """
     ErrorRaising.validate_input_is_str(name)
-    ErrorRaising.validate_list_input(airport_data)
-    ErrorRaising.validate_dicts_in_list(airport_data)
-    matches = [airport for airport in airport_data if name in str(airport['name'])]
+    ErrorRaising.validate_list_input(airport_data_input)
+    ErrorRaising.validate_dicts_in_list(airport_data_input)
+    matches = [airport for airport in airport_data_input if name in str(airport['name'])]
     return matches
 
 def choose_desired_airport(airport_matches: list) -> dict:
@@ -193,7 +190,7 @@ def choose_desired_airport(airport_matches: list) -> dict:
         return list(airport for airport in airport_matches if airport['name'] == airport_choice)[0]
     return airport_matches[0]
 
-def setup_command_line_arguments(options: list[str], choices: list) -> "Namespace":
+def setup_command_line_arguments(options: list[str], choices: list) -> "argparse.Namespace":
     """ Takes command line input and returns it as a Namespace object. """
     parser = argparse.ArgumentParser()
     for index, option in enumerate(options):
@@ -205,10 +202,10 @@ def export_html(name: str) -> None:
     """ Exports the Console as a HTML file. """
     console.save_html(f"Search-{name}-{datetime.now().ctime()}.html")
 
-def export_json(name: str, flight_data: list) -> None:
+def export_json(name: str, flight_data_input: list) -> None:
     """ Exports the Console as a JSON file. """
     with open(f"Search-{name}-{datetime.now().ctime()}.json", "w", encoding='UTF-8') as json_file:
-        json.dump(flight_data, json_file)
+        json.dump(flight_data_input, json_file)
         
 
 if __name__ == "__main__":
