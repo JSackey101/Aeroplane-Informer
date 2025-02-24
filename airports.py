@@ -73,7 +73,8 @@ def load_weather_for_location(lat: float, lng: float,
     """Given a location, load the current weather for that location"""
     ErrorRaising.validate_load_weather_for_location(lat, lng, timestamp)
     response = requests.get(
-        f"http://api.weatherapi.com/v1/forecast.json?key={environ["WEATHER_API_KEY"]}&q={lat},{lng}&unixdt={timestamp}&aqi=yes",
+        f"http://api.weatherapi.com/v1/forecast.json?key={
+        environ["WEATHER_API_KEY"]}&q={lat},{lng}&unixdt={timestamp}&aqi=yes",
         timeout=10)
     if response.status_code != 200:
         ErrorRaising.raise_error_weather_key(
@@ -137,12 +138,12 @@ def remove_minutes(datetime_obj: datetime) -> "datetime":
     datetime_obj = datetime_obj.replace(minute=0, second=0, microsecond=0)
     return datetime_obj
 
-def render_flights(flights: list, airport_name: str) -> None:
+def render_flights(flights: list, name_airport: str) -> None:
     """Render a list of flights to the console using the Rich Library
 
     Consider using Panels, Grids, Tables or any of the more advanced
     features of the library"""
-    table = Table(title=f"Flight Data ({airport_name})")
+    table = Table(title=f"Flight Data ({name_airport})")
 
     table.add_column("Flight Number")
     table.add_column("Terminal")
