@@ -1,5 +1,6 @@
 """ A program to find and display flight data. """
 
+from os import environ
 import argparse
 import json
 from datetime import datetime, timedelta
@@ -7,12 +8,11 @@ import requests
 from rich.prompt import Prompt
 from rich.console import Console
 from rich.table import Table
+from dotenv import load_dotenv
 
 
 console = Console(record=True)
 FLIGHT_DATE_FORMAT = '%Y-%m-%d %H:%M'
-WEATHER_API_KEY = "***REMOVED***"
-AIRLABS_API_KEY = "***REMOVED***"
 
 class ErrorRaising():
     """ A class for raising errors. """
@@ -58,7 +58,6 @@ class ErrorRaising():
         """ Validates that the input is a string. """
         if not isinstance(string, str):
             raise TypeError("The input must be a string.")
-        
     @staticmethod
     def raise_error_airlabs_api():
         """ Raises an error when the Airlabs API key reaches limit. """
@@ -69,7 +68,7 @@ def load_weather_for_location(lat: float, lng: float,
     """Given a location, load the current weather for that location"""
     ErrorRaising.validate_load_weather_for_location(lat, lng, timestamp)
     response = requests.get(
-        f"http://api.weatherapi.com/v1/forecast.json?key={WEATHER_API_KEY}&q={lat},{lng}&unixdt={timestamp}&aqi=yes",
+        f"http://api.weatherapi.com/v1/forecast.json?key={environ["WEATHER_API_KEY"]}&q={lat},{lng}&unixdt={timestamp}&aqi=yes",
         timeout=10)
     response.raise_for_status()
     return response.json()
@@ -151,7 +150,7 @@ def render_flights(flights: list) -> None:
 def get_flights_from_iata(iata: str) -> list:
     """Given an IATA get the flights that are departing from that airport from Airlabs"""
     ErrorRaising.validate_input_is_str(iata)
-    response = requests.get(f"https://airlabs.co/api/v9/schedules?dep_iata={iata}&api_key={AIRLABS_API_KEY}"
+    response = requests.get(f"https://airlabs.co/api/v9/schedules?dep_iata={iata}&api_key={environ["AIRLABS_API_KEY"]}"
                             , timeout=10)
     response.raise_for_status()
     try:
@@ -165,7 +164,7 @@ def find_airport_from_iata(iata: str) -> list:
     """Given an IATA get the Airport that matches the IATA from Airlabs. """
     ErrorRaising.validate_input_is_str(iata)
     response = requests.get(
-        f"https://airlabs.co/api/v9/airports?iata_code={iata}&api_key={AIRLABS_API_KEY}",
+        f"https://airlabs.co/api/v9/airports?iata_code={iata}&api_key={environ["AIRLABS_API_KEY"]}",
         timeout=10)
     response.raise_for_status()
     try:
@@ -221,6 +220,7 @@ def export_json(name: str, flight_data_input: list) -> None:
         
 
 if __name__ == "__main__":
+    load_dotenv(".env")
     airport_data = load_airport_json()
     command_line_input = setup_command_line_arguments(["--airport", "--export"],
                                                       [None, ['JSON', 'HTML']])
