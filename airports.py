@@ -3,7 +3,7 @@
 from os import environ
 import argparse
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import requests
 from rich.prompt import Prompt
 from rich.console import Console
@@ -102,35 +102,47 @@ def flight_data_cleaner(flights: list) -> list:
         clean_flights.append(clean_flight)
     return clean_flights
 
+
 def add_weather_to_flights(flights: list) -> None:
     """ Add the weather data to the flights. """
     ErrorRaising.validate_flights_in_list(flights)
     ErrorRaising.validate_list_input(flights)
     ErrorRaising.validate_dicts_in_list(flights)
     for i, flight in enumerate(flights):
-        arrival_date_obj = datetime.strptime(flight['arr_time_utc'], FLIGHT_DATE_FORMAT)
-        arrival_date_obj = round_to_hour(arrival_date_obj)
+        arrival_date_obj = datetime.strptime(
+            flight['arr_time_utc'], FLIGHT_DATE_FORMAT)
+        arrival_date_obj = remove_minutes(arrival_date_obj)
         airport_info = find_airport_from_iata(flight['arr_iata'])
         weather = load_weather_for_location(float(airport_info['lat']),
-                                            float(airport_info['lng']), 
+                                            float(airport_info['lng']),
                                             arrival_date_obj.timestamp())
         flights[i] = flight | [
-            hour for hour in weather['forecast']['forecastday'][0]['hour'] if 
-            hour['time_epoch'] == arrival_date_obj.timestamp()][0] | weather['location']
+            hour for hour in weather['forecast']['forecastday'][0]['hour'] if
+            datetime.strptime(hour['time'], FLIGHT_DATE_FORMAT).replace(
+                tzinfo=timezone.utc).timestamp()
+                == arrival_date_obj.timestamp()][0] | weather['location']
 
-def round_to_hour(datetime_obj: datetime) -> "datetime":
+
+def round_to_nearest_hour(datetime_obj: datetime) -> "datetime":
     """ Returns a datetime object rounded to the nearest hour. """
     ErrorRaising.validate_input_is_datetime(datetime_obj)
     round_time = timedelta(hours=datetime_obj.minute // 30)
     datetime_obj = datetime_obj.replace(minute=0, second=0, microsecond=0)
     return datetime_obj + round_time
 
-def render_flights(flights: list) -> None:
+
+def remove_minutes(datetime_obj: datetime) -> "datetime":
+    """ Returns a datetime object without its minutes/seconds. """
+    ErrorRaising.validate_input_is_datetime(datetime_obj)
+    datetime_obj = datetime_obj.replace(minute=0, second=0, microsecond=0)
+    return datetime_obj
+
+def render_flights(flights: list, airport_name: str) -> None:
     """Render a list of flights to the console using the Rich Library
 
     Consider using Panels, Grids, Tables or any of the more advanced
     features of the library"""
-    table = Table(title="Flight Data")
+    table = Table(title=f"Flight Data ({airport_name})")
 
     table.add_column("Flight Number")
     table.add_column("Terminal")
@@ -157,8 +169,8 @@ def render_flights(flights: list) -> None:
 def get_flights_from_iata(iata: str) -> list:
     """Given an IATA get the flights that are departing from that airport from Airlabs"""
     ErrorRaising.validate_input_is_str(iata)
-    response = requests.get(f"https://airlabs.co/api/v9/schedules?dep_iata={iata}&api_key={environ["AIRLABS_API_KEY"]}"
-                            , timeout=10)
+    response = requests.get(f"https://airlabs.co/api/v9/schedules?dep_iata={
+        iata}&api_key={environ["AIRLABS_API_KEY"]}", timeout=10)
     response.raise_for_status()
     if "error" in response.json():
         ErrorRaising.raise_error_airlabs_key(
@@ -224,7 +236,6 @@ def export_json(name: str, flight_data_input: list) -> None:
     """ Exports the Console as a JSON file. """
     with open(f"Search-{name}-{datetime.now().ctime()}.json", "w", encoding='UTF-8') as json_file:
         json.dump(flight_data_input, json_file)
-        
 
 if __name__ == "__main__":
     load_dotenv(".env")
@@ -240,7 +251,7 @@ if __name__ == "__main__":
     add_weather_to_flights(flight_data['response'])
     clean_flight_data = flight_data_cleaner(flight_data['response'])
 
-    render_flights(clean_flight_data)
+    render_flights(clean_flight_data, airport['name'])
 
     if command_line_input.export == 'HTML':
         export_html(airport['name'])
