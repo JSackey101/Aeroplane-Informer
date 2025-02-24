@@ -59,9 +59,27 @@ class ErrorRaising():
         if not isinstance(string, str):
             raise TypeError("The input must be a string.")
     @staticmethod
-    def raise_error_airlabs_api():
+    def raise_error_airlabs_limit():
         """ Raises an error when the Airlabs API key reaches limit. """
         raise requests.HTTPError("Airlabs API key has reached the usage limit.")
+    @staticmethod
+    def raise_error_airlabs_key():
+        """ Raises an error if the Airlabs API key is invalid/has reached limit."""
+        response = requests.get(
+            f"https://airlabs.co/api/v9/airports?api_key={environ["AIRLABS_API_KEY"]}",
+            timeout=10)
+        response.raise_for_status()
+        if "error" in response.json():
+            raise requests.HTTPError("Airlabs API: "+ response.json()['error']['message'])
+    @staticmethod
+    def raise_error_weather_key():
+        """ Raises an error if the Weather API key is invalid/reaches limit."""
+        response = requests.get(
+            f"http://api.weatherapi.com/v1/current.json?key={environ["WEATHER_API_KEY"]}&q=London",
+            timeout=10)
+        if response.status_code != 200:
+            raise requests.HTTPError("Weather API: " +
+                response.json()['error']['message'])
 
 def load_weather_for_location(lat: float, lng: float, 
                               timestamp:float =datetime.now().timestamp()) -> dict:
@@ -156,7 +174,7 @@ def get_flights_from_iata(iata: str) -> list:
     try:
         response.json()['response']
     except KeyError:
-        ErrorRaising.raise_error_airlabs_api()
+        ErrorRaising.raise_error_airlabs_limit()
     return response.json()
 
 
@@ -170,7 +188,7 @@ def find_airport_from_iata(iata: str) -> list:
     try:
         return response.json()['response'][0]
     except KeyError:
-        ErrorRaising.raise_error_airlabs_api()
+        ErrorRaising.raise_error_airlabs_limit()
 
 
 def load_airport_json() -> list[dict]:
@@ -221,6 +239,8 @@ def export_json(name: str, flight_data_input: list) -> None:
 
 if __name__ == "__main__":
     load_dotenv(".env")
+    ErrorRaising.raise_error_weather_key()
+    ErrorRaising.raise_error_airlabs_key()
     airport_data = load_airport_json()
     command_line_input = setup_command_line_arguments(["--airport", "--export"],
                                                       [None, ['JSON', 'HTML']])
