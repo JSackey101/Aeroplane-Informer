@@ -1,15 +1,19 @@
 
 from os import environ
+from io import StringIO
+import sys
 from datetime import datetime
 import pytest
 import requests_mock
+from rich.console import Console
 from airports import (load_weather_for_location, flight_data_cleaner, add_weather_to_flights,
                       round_to_nearest_hour, get_flights_from_iata,
-                      find_airport_from_iata, choose_desired_airport, remove_minutes)
+                      find_airport_from_iata, choose_desired_airport, remove_minutes, render_flights)
 import requests
 from dotenv import load_dotenv
 
 load_dotenv(".env")
+
 class TestLoadWeather():
     """ Contains tests of the load_weather_for_location function. """
 
@@ -224,3 +228,95 @@ class TestChooseDesiredAirport():
         """ Test to see whether a ValueError is raised when the airport matches list is empty. """
         with pytest.raises(ValueError):
             choose_desired_airport([])
+
+class TestRenderFlights():
+    """ A class to test the render_flights function. """
+
+    @staticmethod
+    def test_flight_output_headers(test_flight_data_gate_terminal, capsys):
+        """ Test to see whether the Table headers are rendered onto the console. """
+        render_flights([test_flight_data_gate_terminal],
+                       "London Heathrow Airport")
+        str_output = capsys.readouterr().out
+        assert "Flight Number" in str_output
+        assert "Terminal" in str_output
+        assert "Gate" in str_output
+        assert "Departure" in str_output
+        assert "Time" in str_output
+        assert str_output.count('Time') == 2
+        assert "(UTC)" in str_output
+        assert str_output.count("(UTC)") == 2
+        assert "Arrival" in str_output
+        assert "Destination" in str_output
+        assert str_output.count("Destination") == 3
+        assert "Duration" in str_output
+        assert "(minutes)" in str_output
+        assert "Temperature" in str_output
+        assert "(Degrees)" in str_output
+        assert "Weather" in str_output
+        assert "Condition" in str_output
+
+    @staticmethod
+    def test_flight_output_no_gate_terminal(test_flight_data_no_gate_terminal, capsys):
+        """ Test to see whether the flight data is correctly rendered onto the console when 
+            there is no Gate/Terminal data. """
+        render_flights([test_flight_data_no_gate_terminal], "London Heathrow Airport")
+        str_output = capsys.readouterr().out
+        assert '2515' in str_output
+        assert 'N/A' in str_output
+        assert str_output.count('N/A') == 2
+        assert '2025-02-25' in str_output
+        assert '10:25' in str_output
+        assert '2025-02-25' in str_output
+        assert '11:40' in str_output
+        assert '75' in str_output
+        assert 'Sunny' in str_output
+        assert '8.9' in str_output
+        assert 'Lijnden' in str_output
+        assert 'Netherlands' in str_output
+
+    @staticmethod
+    def test_flight_output_gate_terminal(test_flight_data_gate_terminal, capsys):
+        """ Test to see whether the flight data is correctly rendered onto the console when 
+            there is Gate/Terminal data. """
+        render_flights([test_flight_data_gate_terminal],
+                       "London Heathrow Airport")
+        str_output = capsys.readouterr().out
+        assert '2515' in str_output
+        assert 'S' in str_output
+        assert '90' in str_output
+        assert '2025-02-25' in str_output
+        assert '10:25' in str_output
+        assert '2025-02-25' in str_output
+        assert '11:40' in str_output
+        assert '75' in str_output
+        assert 'Windy' in str_output
+        assert '8.9' in str_output
+        assert 'Lijnden' in str_output
+        assert 'Netherlands' in str_output
+
+    @staticmethod
+    def test_error_raised_if_no_flights():
+        """ Test to see whether a ValueError is raised when there are no flights given. """
+        with pytest.raises(ValueError):
+            render_flights([], "London Heathrow Airport")
+
+    @staticmethod
+    def test_error_raised_if_non_list_given(test_unclean_data):
+        """ Test to see whether a TypeError is raised when the flight data given is not a list. """
+        with pytest.raises(TypeError):
+            render_flights(test_unclean_data,
+                           "London Heathrow Airport")
+
+    @staticmethod
+    def test_error_raised_if_flights_not_dict():
+        """ Test to see whether a TypeError is raised when the flights within the flight data are not dicts. """
+        with pytest.raises(TypeError):
+            render_flights(['test', 'test2'],
+                           "London Heathrow Airport")
+            
+    @staticmethod
+    def test_error_raised_if_non_string(test_flight_data_gate_terminal):
+        """ Test to see whether a TypeError is raised when the airport_name input is not a string. """
+        with pytest.raises(TypeError):
+            render_flights([test_flight_data_gate_terminal], 192)

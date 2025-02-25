@@ -108,3 +108,20 @@ def test_clean_data():
         "dest_name": "Tafo",
         "dest_country": "Ghana"
     }
+
+@pytest.fixture()
+def test_flight_data_gate_terminal():
+    """ Returns 1 instance of flight data. """
+    return {'flight_number': '2515', 'dep_terminal': '90', 'dep_gate': "S",
+            'dep_time_utc': '2025-02-25 10:25', 'arr_time_utc': '2025-02-25 11:40',
+            'duration': 75, 'condition': 'Windy', 'temp_c': 8.9, 
+            'dest_name': 'Lijnden', 'dest_country': 'Netherlands'}
+
+
+@pytest.fixture()
+def test_flight_data_no_gate_terminal():
+    """ Returns 1 instance of flight data. """
+    return {'flight_number': '2515', 'dep_terminal': None, 'dep_gate': None,
+            'dep_time_utc': '2025-02-25 10:25', 'arr_time_utc': '2025-02-25 11:40',
+            'duration': 75, 'condition': 'Sunny', 'temp_c': 8.9,
+            'dest_name': 'Lijnden', 'dest_country': 'Netherlands'}
