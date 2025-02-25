@@ -1,14 +1,14 @@
+""" Contains tests for the Aeroplane Informer. """
 
 from os import environ
-from io import StringIO
-import sys
+from unittest.mock import patch
 from datetime import datetime
 import pytest
 import requests_mock
-from rich.console import Console
 from airports import (load_weather_for_location, flight_data_cleaner, add_weather_to_flights,
                       round_to_nearest_hour, get_flights_from_iata,
-                      find_airport_from_iata, choose_desired_airport, remove_minutes, render_flights)
+                      find_airport_from_iata, choose_desired_airport, remove_minutes, render_flights,
+                      find_airports_from_name)
 import requests
 from dotenv import load_dotenv
 
@@ -130,6 +130,16 @@ class TestAddWeather():
         """ Test to see whether a TypeError is raised when the flights within the flight data are not dicts. """
         with pytest.raises(TypeError):
             add_weather_to_flights(['test', 'test2'])
+
+    @staticmethod
+    @patch('airports.load_weather_for_location')
+    def test_add_weather(test_load_weather, test_weather_data, test_flight_data, 
+                         test_flight_weather_data):
+        """ Test to see whether the weather data is correctly added to the flight data. """
+        flights = [test_flight_data]
+        test_load_weather.return_value = test_weather_data
+        add_weather_to_flights(flights)
+        assert flights[0] == test_flight_weather_data
 
 class TestRoundHour():
     """ A class to test the round_to_nearest_hour function. """
@@ -320,3 +330,30 @@ class TestRenderFlights():
         """ Test to see whether a TypeError is raised when the airport_name input is not a string. """
         with pytest.raises(TypeError):
             render_flights([test_flight_data_gate_terminal], 192)
+
+class TestFindAirportsFromName():
+    """ A class to test the find_airports_from_name function. """
+
+    @staticmethod
+    def test_error_raised_if_no_flights():
+        """ Test to see whether a ValueError is raised when there are no flights given. """
+        with pytest.raises(ValueError):
+            find_airports_from_name("London Heathrow Airport", [])
+
+    @staticmethod
+    def test_error_raised_if_non_list_given(test_unclean_data):
+        """ Test to see whether a TypeError is raised when the flight data given is not a list. """
+        with pytest.raises(TypeError):
+            find_airports_from_name("London Heathrow Airport", test_unclean_data)
+
+    @staticmethod
+    def test_error_raised_if_flights_not_dict():
+        """ Test to see whether a TypeError is raised when the flights within the flight data are not dicts. """
+        with pytest.raises(TypeError):
+            find_airports_from_name("London Heathrow Airport", ['test', 'test2'])
+
+    @staticmethod
+    def test_error_raised_if_non_string(test_flight_data_gate_terminal):
+        """ Test to see whether a TypeError is raised when the airport_name input is not a string. """
+        with pytest.raises(TypeError):
+            find_airports_from_name(192, [test_flight_data_gate_terminal])
