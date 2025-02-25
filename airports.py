@@ -139,10 +139,11 @@ def remove_minutes(datetime_obj: datetime) -> "datetime":
     return datetime_obj
 
 def render_flights(flights: list, name_airport: str) -> None:
-    """Render a list of flights to the console using the Rich Library
-
-    Consider using Panels, Grids, Tables or any of the more advanced
-    features of the library"""
+    """Render a list of flights to the console using the Rich Library as a Table. """
+    ErrorRaising.validate_input_is_str(name_airport)
+    ErrorRaising.validate_flights_in_list(flights)
+    ErrorRaising.validate_list_input(flights)
+    ErrorRaising.validate_dicts_in_list(flights)
     table = Table(title=f"Flight Data ({name_airport})")
 
     table.add_column("Flight Number")
