@@ -186,7 +186,6 @@ def find_airport_from_iata(iata: str) -> list:
         f"https://airlabs.co/api/v9/airports?iata_code={iata}&api_key={environ["AIRLABS_API_KEY"]}",
         timeout=10)
     response.raise_for_status()
-    response.raise_for_status()
     if "error" in response.json():
         ErrorRaising.raise_error_airlabs_key(
             response.json()['error']['message'])
