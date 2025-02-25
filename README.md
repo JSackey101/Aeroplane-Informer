@@ -27,7 +27,7 @@ You will need both an [Airlabs API](https://airlabs.co/) key and a [Weather API]
 
 You will need to sign up to both sites to get the keys.
 
-Once you get the keys, you should place them under the respective variables in the .env file.
+Once you get the keys, you should place them under the respective variables in the ```.env``` file.
 
 Example:
 ```
@@ -59,7 +59,7 @@ To obtain a console print of the table and export the flight data as JSON, run:
 python3 airports.py --airport [Name of Desired Airport] --export JSON
 ```
 
-### Future Work
+## Future Work
 
 - Currently the airport data is obtained from a provided JSON file with airports - this is used to gain flight data.
   I would like to make use of Airlabs for the airport data too and remove the JSON file entirely.
