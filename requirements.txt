@@ -1,0 +1,6 @@
+pytest
+requests-mock
+datetime
+requests
+rich
+python-dotenv
