@@ -33,20 +33,20 @@ class ErrorRaising():
         if timestamp < 1262304000:
             raise ValueError("Invalid Timestamp. Must be on/after 1st Jan 2010. ")
     @staticmethod
-    def validate_flights_in_list(flights: list):
+    def validate_values_in_list(vals: list):
         """ Validates that there are flights in the list. """
-        if len(flights) == 0:
-            raise ValueError("There must be at least 1 flight. ")
+        if len(vals) == 0:
+            raise ValueError("There must be at least 1 flight/airport. ")
     @staticmethod
-    def validate_list_input(flights: list):
+    def validate_list_input(vals: list):
         """ Validates that the input is a list. """
-        if not isinstance(flights, list):
-            raise TypeError("The flights must be a list.")
+        if not isinstance(vals, list):
+            raise TypeError("The flights/airports must be a list.")
     @staticmethod
-    def validate_dicts_in_list(flights: list):
+    def validate_dicts_in_list(vals: list):
         """ Validates that the inputs within the list are dicts. """
-        if not all(isinstance(flight, dict) for flight in flights):
-            raise TypeError("Each flight must be a dict.")
+        if not all(isinstance(val, dict) for val in vals):
+            raise TypeError("Each flight/airport must be a dict.")
 
     @staticmethod
     def validate_input_is_datetime(datetime_obj: datetime):
@@ -83,7 +83,7 @@ def load_weather_for_location(lat: float, lng: float,
 
 def flight_data_cleaner(flights: list) -> list:
     """ Takes a list of flights and returns only the needed flight data. """
-    ErrorRaising.validate_flights_in_list(flights)
+    ErrorRaising.validate_values_in_list(flights)
     ErrorRaising.validate_list_input(flights)
     ErrorRaising.validate_dicts_in_list(flights)
     clean_flights = []
@@ -106,7 +106,7 @@ def flight_data_cleaner(flights: list) -> list:
 
 def add_weather_to_flights(flights: list) -> None:
     """ Add the weather data to the flights. """
-    ErrorRaising.validate_flights_in_list(flights)
+    ErrorRaising.validate_values_in_list(flights)
     ErrorRaising.validate_list_input(flights)
     ErrorRaising.validate_dicts_in_list(flights)
     for i, flight in enumerate(flights):
@@ -141,7 +141,7 @@ def remove_minutes(datetime_obj: datetime) -> "datetime":
 def render_flights(flights: list, name_airport: str) -> None:
     """Render a list of flights to the console using the Rich Library as a Table. """
     ErrorRaising.validate_input_is_str(name_airport)
-    ErrorRaising.validate_flights_in_list(flights)
+    ErrorRaising.validate_values_in_list(flights)
     ErrorRaising.validate_list_input(flights)
     ErrorRaising.validate_dicts_in_list(flights)
     table = Table(title=f"Flight Data ({name_airport})")
@@ -205,6 +205,7 @@ def find_airports_from_name(name: str, airport_data_input: list) -> list:
     Find an airport from the airport_data given a name
     Could return one or more airport objects
     """
+    ErrorRaising.validate_values_in_list(airport_data_input)
     ErrorRaising.validate_input_is_str(name)
     ErrorRaising.validate_list_input(airport_data_input)
     ErrorRaising.validate_dicts_in_list(airport_data_input)
