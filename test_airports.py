@@ -133,10 +133,12 @@ class TestAddWeather():
 
     @staticmethod
     @patch('airports.load_weather_for_location')
-    def test_add_weather(test_load_weather, test_weather_data, test_flight_data, 
+    @patch('airports.find_airport_from_iata')
+    def test_add_weather(test_find_airport, test_load_weather, test_weather_data, test_flight_data, 
                          test_flight_weather_data):
         """ Test to see whether the weather data is correctly added to the flight data. """
         flights = [test_flight_data]
+        test_find_airport.return_value = {'lat': -5, 'lng': -5}
         test_load_weather.return_value = test_weather_data
         add_weather_to_flights(flights)
         assert flights[0] == test_flight_weather_data
