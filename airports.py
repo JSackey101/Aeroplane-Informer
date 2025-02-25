@@ -152,8 +152,8 @@ def render_flights(flights: list, name_airport: str) -> None:
     table.add_column("Arrival\nTime (UTC)")
     table.add_column("Destination")
     table.add_column("Duration\n(minutes)")
-    table.add_column("Temperature\n(Degrees)")
-    table.add_column("Weather Condition")
+    table.add_column("Destination Temperature\n(Degrees)")
+    table.add_column("Destination Weather Condition")
 
     for flight in flights:
         table.add_row(flight['flight_number'],
@@ -233,7 +233,7 @@ def export_html(name: str) -> None:
     console.save_html(f"Search-{name}-{datetime.now().ctime()}.html")
 
 def export_json(name: str, flight_data_input: list) -> None:
-    """ Exports the Console as a JSON file. """
+    """ Exports the Flight Data for an Airport as a JSON file. """
     with open(f"Search-{name}-{datetime.now().ctime()}.json", "w", encoding='UTF-8') as json_file:
         json.dump(flight_data_input, json_file)
 
