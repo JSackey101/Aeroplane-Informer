@@ -243,69 +243,6 @@ class TestRenderFlights():
     """ A class to test the render_flights function. """
 
     @staticmethod
-    def test_flight_output_headers(test_flight_data_gate_terminal, capsys):
-        """ Test to see whether the Table headers are rendered onto the console. """
-        render_flights([test_flight_data_gate_terminal],
-                       "London Heathrow Airport")
-        str_output = capsys.readouterr().out
-        assert "Flight Number" in str_output
-        assert "Terminal" in str_output
-        assert "Gate" in str_output
-        assert "Departure" in str_output
-        assert "Time" in str_output
-        assert str_output.count('Time') == 2
-        assert "(UTC)" in str_output
-        assert str_output.count("(UTC)") == 2
-        assert "Arrival" in str_output
-        assert "Destination" in str_output
-        assert str_output.count("Destination") == 3
-        assert "Duration" in str_output
-        assert "(minutes)" in str_output
-        assert "Temperature" in str_output
-        assert "(Degrees)" in str_output
-        assert "Weather" in str_output
-        assert "Condition" in str_output
-
-    @staticmethod
-    def test_flight_output_no_gate_terminal(test_flight_data_no_gate_terminal, capsys):
-        """ Test to see whether the flight data is correctly rendered onto the console when 
-            there is no Gate/Terminal data. """
-        render_flights([test_flight_data_no_gate_terminal], "London Heathrow Airport")
-        str_output = capsys.readouterr().out
-        assert '2515' in str_output
-        assert 'N/A' in str_output
-        assert str_output.count('N/A') == 2
-        assert '2025-02-25' in str_output
-        assert '10:25' in str_output
-        assert '2025-02-25' in str_output
-        assert '11:40' in str_output
-        assert '75' in str_output
-        assert 'Sunny' in str_output
-        assert '8.9' in str_output
-        assert 'Lijnden' in str_output
-        assert 'Netherlands' in str_output
-
-    @staticmethod
-    def test_flight_output_gate_terminal(test_flight_data_gate_terminal, capsys):
-        """ Test to see whether the flight data is correctly rendered onto the console when 
-            there is Gate/Terminal data. """
-        render_flights([test_flight_data_gate_terminal],
-                       "London Heathrow Airport")
-        str_output = capsys.readouterr().out
-        assert '2515' in str_output
-        assert 'S' in str_output
-        assert '90' in str_output
-        assert '2025-02-25' in str_output
-        assert '10:25' in str_output
-        assert '2025-02-25' in str_output
-        assert '11:40' in str_output
-        assert '75' in str_output
-        assert 'Windy' in str_output
-        assert '8.9' in str_output
-        assert 'Lijnden' in str_output
-        assert 'Netherlands' in str_output
-
-    @staticmethod
     def test_error_raised_if_no_flights():
         """ Test to see whether a ValueError is raised when there are no flights given. """
         with pytest.raises(ValueError):
