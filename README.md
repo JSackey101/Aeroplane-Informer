@@ -66,3 +66,4 @@ python3 airports.py --airport [Name of Desired Airport] --export JSON
   This would allow for more detailed information and better/more up-to-date airport coverage.
 - Add progress display for when code is searching the APIs for data.
 - Add multiprocessing so requests can run in parallel to speed things up.
+- Currently situations such as finding no airports or flights result in Error Raising. May be worth looking into more graceful handling of these issues.
